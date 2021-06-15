@@ -41,7 +41,7 @@ const ConfirmedOrder = sequelize.define("confirmed_Order", {
     allowNull: false,
   },
   tax: {
-    type: DataTypes.INTEGER,
+    type: DataTypes.DOUBLE,
     allowNull: false,
   },
   total: {

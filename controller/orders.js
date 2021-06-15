@@ -38,34 +38,34 @@ const fetchAllNewOrder = asyncHandler(async (req, res, next) => {
 });
 
 const woo_order = asyncHandler(async (req, res, next) => {
-  const { data } = await WooCommerce.get(`orders/52242`);
+  const { data } = await WooCommerce.get(`orders/55131`);
 
   let skus = "";
-  for (let index = 0; index < data.line_items.length; index++) {
-    const item = data.line_items[index];
-    console.log(item);
-    console.log(
-      item.meta_data[0].key === "_bundled_items" &&
-        item.bundled_items.length > 0
-    );
-    if (
-      item.meta_data[0].key === "_bundled_items" &&
-      item.bundled_items.length > 0
-    ) {
-      for (let index2 = 0; index2 < item.bundled_items.length; index2++) {
-        const bundled_item_id = item.bundled_items[index2];
-        console.log(bundled_item_id);
-        for (let index3 = 0; index3 < data.line_items.length; index3++) {
-          for (let index4 = 0; index4 < item.quantity; index4++) {
-            const i = data.line_items[index3];
-            if (i.id === bundled_item_id) {
-              skus += i.sku + ",";
-            }
-          }
-        }
-      }
-    }
-  }
+  // for (let index = 0; index < data.line_items.length; index++) {
+  //   const item = data.line_items[index];
+  //   console.log(item);
+  //   console.log(
+  //     item.meta_data[0].key === "_bundled_items" &&
+  //       item.bundled_items.length > 0
+  //   );
+  //   if (
+  //     item.meta_data[0].key === "_bundled_items" &&
+  //     item.bundled_items.length > 0
+  //   ) {
+  //     for (let index2 = 0; index2 < item.bundled_items.length; index2++) {
+  //       const bundled_item_id = item.bundled_items[index2];
+  //       console.log(bundled_item_id);
+  //       for (let index3 = 0; index3 < data.line_items.length; index3++) {
+  //         for (let index4 = 0; index4 < item.quantity; index4++) {
+  //           const i = data.line_items[index3];
+  //           if (i.id === bundled_item_id) {
+  //             skus += i.sku + ",";
+  //           }
+  //         }
+  //       }
+  //     }
+  //   }
+  // }
   return res.status(200).json(data);
 });
 
@@ -131,7 +131,7 @@ const refundReport = asyncHandler(async (req, res, next) => {
 });
 
 const fetchAllOrderFromWoocommerce = asyncHandler(async (req, res, next) => {
-  var threeMonthsAgo = moment().subtract(20, "days");
+  var threeMonthsAgo = moment().subtract(1, "months");
   // console.log(threeMonthsAgo);
   await sequelize.query("SET FOREIGN_KEY_CHECKS = 0");
   await CancelledOrder.destroy({
@@ -215,6 +215,7 @@ const fetchAllOrderFromWoocommerce = asyncHandler(async (req, res, next) => {
         try {
           const result = await sequelize.transaction(async (t) => {
             if (woo_order.refunds.length === 0) {
+              console.log("3-passed from here");
               for (k = 0; k < woo_order.line_items.length; k++) {
                 const orderItem = woo_order.line_items[k];
                 let skus = "";
@@ -230,13 +231,9 @@ const fetchAllOrderFromWoocommerce = asyncHandler(async (req, res, next) => {
                       index3 < woo_order.line_items.length;
                       index3++
                     ) {
-                      for (
-                        let index4 = 0;
-                        index4 < orderItem.quantity;
-                        index4++
-                      ) {
-                        const i = woo_order.line_items[index3];
-                        if (i.id === bundled_item_id) {
+                      const i = woo_order.line_items[index3];
+                      if (i.id === bundled_item_id) {
+                        for (let index4 = 0; index4 < i.quantity; index4++) {
                           skus += i.sku + ",";
                         }
                       }
@@ -250,15 +247,18 @@ const fetchAllOrderFromWoocommerce = asyncHandler(async (req, res, next) => {
                       quantity: 1,
                       order_status: "processing",
                       shipping_method: woo_order.shipping_lines[0].method_id,
-                      price: orderItem.total,
-                      tax: orderItem.total_tax,
+                      price: +orderItem.price.toFixed(2),
+                      tax: +((orderItem.price * 15) / 100).toFixed(2),
                       payment_method: woo_order.payment_method_title,
                       order_created_date: woo_order.date_created,
                       order_modified_date: woo_order.date_modified,
                       item_sku: orderItem.sku,
-                      item_price: orderItem.price,
+                      item_price: +orderItem.price.toFixed(2),
                       item_quantity: orderItem.quantity,
-                      total: orderItem.total,
+                      total: +(
+                        orderItem.price +
+                        (orderItem.price * 15) / 100
+                      ).toFixed(2),
                     },
                     { transaction: t }
                   );
@@ -267,6 +267,7 @@ const fetchAllOrderFromWoocommerce = asyncHandler(async (req, res, next) => {
                     if (
                       woo_order.line_items[k].meta_data[0].key != "_bundled_by"
                     ) {
+                      console.log("passed from here");
                       for (let q = 0; q < orderItem.quantity; q++) {
                         createdOrder = await ConfirmedOrder.create(
                           {
@@ -275,17 +276,21 @@ const fetchAllOrderFromWoocommerce = asyncHandler(async (req, res, next) => {
                             order_item_name: orderItem.name,
                             quantity: 1,
                             order_status: "processing",
-                            shipping_method:
-                              woo_order.shipping_lines[0].method_id,
-                            price: orderItem.total,
-                            tax: orderItem.total_tax,
+                            shipping_method: woo_order.shipping_lines[0]
+                              ? woo_order.shipping_lines[0].method_id
+                              : "naqel",
+                            price: orderItem.price.toFixed(2),
+                            tax: +((orderItem.price * 15) / 100).toFixed(2),
                             payment_method: woo_order.payment_method_title,
                             order_created_date: woo_order.date_created,
                             order_modified_date: woo_order.date_modified,
                             item_sku: orderItem.sku,
                             item_price: orderItem.price,
                             item_quantity: orderItem.quantity,
-                            total: orderItem.total,
+                            total: (
+                              orderItem.price +
+                              (orderItem.price * 15) / 100
+                            ).toFixed(2),
                           },
                           { transaction: t }
                         );
@@ -298,6 +303,7 @@ const fetchAllOrderFromWoocommerce = asyncHandler(async (req, res, next) => {
               for (k = 0; k < woo_order.line_items.length; k++) {
                 const orderItem = woo_order.line_items[k];
                 for (let q = 0; q < orderItem.quantity; q++) {
+                  console.log("2-passed from here");
                   createdOrder = await ConfirmedOrder.create(
                     {
                       woo_order_id: woo_order.id,
@@ -305,21 +311,30 @@ const fetchAllOrderFromWoocommerce = asyncHandler(async (req, res, next) => {
                       order_item_name: orderItem.name,
                       quantity: 1,
                       order_status: "processing",
-                      shipping_method: woo_order.shipping_lines[0].method_id,
-                      price: orderItem.total,
-                      tax: orderItem.total_tax,
+                      shipping_method: woo_order.shipping_lines[0]
+                        ? woo_order.shipping_lines[0].method_id
+                        : "naqel",
+                      price: orderItem.price.toFixed(2),
+                      tax: ((orderItem.price * 15) / 100).toFixed(2),
                       payment_method: woo_order.payment_method_title,
                       order_created_date: woo_order.date_created,
                       order_modified_date: woo_order.date_modified,
                       item_sku: orderItem.sku,
                       item_price: orderItem.price,
                       item_quantity: orderItem.quantity,
-                      total: orderItem.total,
+                      total: (
+                        orderItem.price +
+                        (orderItem.price * 15) / 100
+                      ).toFixed(2),
                     },
                     { transaction: t }
                   );
                 }
-                for (let q = 0; q < orderItem.meta_data[0].value; q++) {
+                for (
+                  let q = 0;
+                  q < orderItem.quantity - orderItem.meta_data[0].value;
+                  q++
+                ) {
                   createdOrder = await CancelledOrder.create(
                     {
                       woo_order_id: woo_order.id,
@@ -327,16 +342,21 @@ const fetchAllOrderFromWoocommerce = asyncHandler(async (req, res, next) => {
                       order_item_name: orderItem.name,
                       quantity: 1,
                       order_status: "refunded",
-                      shipping_method: woo_order.shipping_lines[0].method_id,
-                      price: orderItem.total,
-                      tax: orderItem.total_tax,
+                      shipping_method: woo_order.shipping_lines[0]
+                        ? woo_order.shipping_lines[0].method_id
+                        : "naqel",
+                      price: orderItem.price.toFixed(2),
+                      tax: ((orderItem.price * 15) / 100).toFixed(2),
                       payment_method: woo_order.payment_method_title,
                       order_created_date: woo_order.date_created,
                       order_modified_date: woo_order.date_modified,
                       item_sku: orderItem.sku,
                       item_price: orderItem.price,
                       item_quantity: orderItem.quantity,
-                      total: orderItem.total,
+                      total: +(
+                        orderItem.price +
+                        (orderItem.price * 15) / 100
+                      ).toFixed(2),
                     },
                     { transaction: t }
                   );
