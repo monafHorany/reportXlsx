@@ -150,7 +150,6 @@ const fetchAllOrderFromWoocommerce = asyncHandler(async (req, res, next) => {
   // return res.json(jsonArray.Sheet1.findIndex((s) => s.ORsku == "RJ9000553"));
 
   var threeMonthsAgo = moment().subtract(1, "weeks");
-  // console.log(threeMonthsAgo);
   await sequelize.query("SET FOREIGN_KEY_CHECKS = 0");
   await CancelledOrder.destroy({
     truncate: true,
