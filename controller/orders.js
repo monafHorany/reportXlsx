@@ -4,7 +4,9 @@ const moment = require("moment");
 const excelToJson = require("convert-excel-to-json");
 const csv = require("csvtojson");
 // const { parse } = require("json2csv");
-var json2xls = require("json2xls");
+const AdmZip = require("adm-zip");
+const zip = require("express-zip");
+const json2xls = require("json2xls");
 const fs = require("fs");
 const ConfirmedOrder = require("../models/confirmed_order");
 
@@ -71,28 +73,32 @@ const saleReport = asyncHandler(async (req, res, next) => {
     confirmedOrder.forEach((order) => {
       source.push({
         woo_order_id: order.woo_order_id,
-        sku: order.sku,
+        orjeen_sku: order.orjeen_sku,
+        accountant_sku: order.accountant_sku,
         order_item_name: order.order_item_name,
         quantity: order.quantity,
         order_status: order.order_status,
         shipping_method: order.shipping_method,
         price: order.price,
         tax: order.tax,
+        total: order.total,
         payment_method: order.payment_method,
-        order_created_date: order.order_created_date,
-        order_modified_date: order.order_modified_date,
+        order_created_date: new Date(order.order_created_date).toLocaleString(),
+        order_modified_date: new Date(
+          order.order_modified_date
+        ).toLocaleString(),
       });
     });
-    try {
-      var xls = json2xls(source);
-      fs.writeFileSync("./saleReport.xlsx", xls, "binary");
-    } catch (error) {
-      throw new Error(error);
-    }
-    return res.status(200).json(source);
   } catch (error) {
     throw new Error(error);
   }
+  try {
+    var xls = json2xls(source);
+    fs.writeFileSync("./saleReport.xlsx", xls, "binary");
+  } catch (error) {
+    throw new Error(error);
+  }
+  return res.status(200).json(source);
 });
 const refundReport = asyncHandler(async (req, res, next) => {
   let confirmedOrder;
@@ -102,29 +108,38 @@ const refundReport = asyncHandler(async (req, res, next) => {
     confirmedOrder.forEach((order) => {
       source.push({
         woo_order_id: order.woo_order_id,
-        sku: order.sku,
+        orjeen_sku: order.orjeen_sku,
+        accountant_sku: order.accountant_sku,
         order_item_name: order.order_item_name,
         quantity: order.quantity,
         order_status: order.order_status,
         shipping_method: order.shipping_method,
         price: order.price,
         tax: order.tax,
+        total: order.total,
         payment_method: order.payment_method,
-        order_created_date: order.order_created_date,
-        order_modified_date: order.order_modified_date,
+        order_created_date: new Date(order.order_created_date).toLocaleString(),
+        order_modified_date: new Date(
+          order.order_modified_date
+        ).toLocaleString(),
       });
     });
-    try {
-      var xls = json2xls(source);
-      fs.writeFileSync("./refundReport.xlsx", xls, "binary");
-    } catch (error) {}
-    return res.status(200).json(confirmedOrder);
   } catch (error) {
     throw new Error(error);
   }
+  try {
+    var xls = json2xls(source);
+    fs.writeFileSync("./refundReport.xlsx", xls, "binary");
+  } catch (error) {
+    throw new Error(error);
+  }
+  return res.status(200).json(confirmedOrder);
 });
 
 const fetchAllOrderFromWoocommerce = asyncHandler(async (req, res, next) => {
+  const { from, to } = req.body;
+  // return res.json(req.body);
+  var zip = new AdmZip();
   const jsonArray = excelToJson({
     sourceFile: "اكواد اورجين مع اكواد المحاسب.xlsx",
     header: {
@@ -149,7 +164,7 @@ const fetchAllOrderFromWoocommerce = asyncHandler(async (req, res, next) => {
   // console.log("aksku", aksku);
   // return res.json(jsonArray.Sheet1.findIndex((s) => s.ORsku == "RJ9000553"));
 
-  var threeMonthsAgo = moment().subtract(1, "weeks");
+  // var threeMonthsAgo = moment().subtract(1, "weeks");
   await sequelize.query("SET FOREIGN_KEY_CHECKS = 0");
   await CancelledOrder.destroy({
     truncate: true,
@@ -161,8 +176,8 @@ const fetchAllOrderFromWoocommerce = asyncHandler(async (req, res, next) => {
   while (true) {
     const { data } = await WooCommerce.get(
       `orders?page=${page_num}&per_page=100&after=${new Date(
-        "2021-06-14"
-      ).toISOString()}&before=${new Date("2021-06-15").toISOString()}`
+        from
+      ).toISOString()}&before=${new Date(to).toISOString()}`
     );
     let createdOrder;
     for (let j = 0; j < data.length; j++) {
@@ -236,7 +251,7 @@ const fetchAllOrderFromWoocommerce = asyncHandler(async (req, res, next) => {
                       ].ACCsku,
                     order_item_name: orderItem.name,
                     quantity: 1,
-                    order_status: "cancelled",
+                    order_status: woo_order.status,
                     shipping_method: woo_order.shipping_lines[0].method_id,
                     price: +orderItem.price.toFixed(2),
                     tax: +((orderItem.price * 15) / 100).toFixed(2),
@@ -411,9 +426,120 @@ const fetchAllOrderFromWoocommerce = asyncHandler(async (req, res, next) => {
     }
     page_num++;
     if (data.length === 0) {
-      console.log(data.length);
-      return res.status(200).json(data);
+      let salesSource = [];
+      let refundSource = [];
+
+      try {
+        const confirmedOrder = await ConfirmedOrder.findAll();
+        confirmedOrder.forEach((order) => {
+          salesSource.push({
+            woo_order_id: order.woo_order_id,
+            orjeen_sku: order.orjeen_sku,
+            accountant_sku: order.accountant_sku,
+            order_item_name: order.order_item_name,
+            quantity: order.quantity,
+            order_status: order.order_status,
+            shipping_method: order.shipping_method,
+            price: order.price,
+            tax: order.tax,
+            total: order.total,
+            payment_method: order.payment_method,
+            order_created_date: new Date(
+              order.order_created_date
+            ).toLocaleString(),
+            order_modified_date: new Date(
+              order.order_modified_date
+            ).toLocaleString(),
+          });
+        });
+      } catch (error) {
+        throw new Error(error);
+      }
+      try {
+        var xls = json2xls(salesSource);
+        fs.writeFileSync("./saleReport.xlsx", xls, "binary");
+      } catch (error) {
+        throw new Error(error);
+      }
+
+      try {
+        const confirmedOrder = await CancelledOrder.findAll();
+        confirmedOrder.forEach((order) => {
+          refundSource.push({
+            woo_order_id: order.woo_order_id,
+            orjeen_sku: order.orjeen_sku,
+            accountant_sku: order.accountant_sku,
+            order_item_name: order.order_item_name,
+            quantity: order.quantity,
+            order_status: order.order_status,
+            shipping_method: order.shipping_method,
+            price: order.price,
+            tax: order.tax,
+            total: order.total,
+            payment_method: order.payment_method,
+            order_created_date: new Date(
+              order.order_created_date
+            ).toLocaleString(),
+            order_modified_date: new Date(
+              order.order_modified_date
+            ).toLocaleString(),
+          });
+        });
+      } catch (error) {
+        throw new Error(error);
+      }
+      try {
+        var xls = json2xls(refundSource);
+        fs.writeFileSync("./refundReport.xlsx", xls, "binary");
+      } catch (error) {
+        throw new Error(error);
+      }
+      zip.addLocalFile("./saleReport.xlsx");
+      zip.addLocalFile("./refundReport.xlsx");
+      zip.writeZip("./files.zip");
+
+      return res.status(200).json("being downloaded");
     }
+  }
+});
+
+const downloadFiles = asyncHandler(async (req, res, next) => {
+  const invoiceName = "files.zip";
+  const invoicePath = path.resolve(invoiceName);
+  fs.readFile(invoicePath, (err, data) => {
+    if (err) {
+      return console.log("err" + err);
+    }
+    res.setHeader("Content-Type", "application/zip");
+    res.setHeader(
+      "Content-Disposition",
+      'inline; filename="' + invoiceName + '"'
+    );
+    res.send(data);
+  });
+});
+
+const orderStatusHandler = asyncHandler(async (req, res, next) => {
+  const { ids } = req.body;
+  console.log(ids.split("\n"));
+  // return res.status(201).json("done");
+  const update = {
+    status: "cancelled",
+  };
+  if (ids) {
+    ids.split("\n").map(async (id, index) => {
+      console.log(parseInt(id));
+      if (!isNaN(parseInt(id))) {
+        const { data } = await WooCommerce.put(
+          `orders/${parseInt(id)}`,
+          update
+        );
+      }
+      console.log(index);
+      if (index === ids.split("\n").length - 1) {
+        return res.status(201).json("done");
+      }
+    });
   }
 });
 
@@ -422,3 +548,5 @@ exports.fetchAllNewOrder = fetchAllNewOrder;
 exports.woo_order = woo_order;
 exports.saleReport = saleReport;
 exports.refundReport = refundReport;
+exports.downloadFiles = downloadFiles;
+exports.orderStatusHandler = orderStatusHandler;
