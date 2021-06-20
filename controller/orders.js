@@ -34,7 +34,7 @@ const fetchAllNewOrder = asyncHandler(async (req, res, next) => {
 });
 
 const woo_order = asyncHandler(async (req, res, next) => {
-  const { data } = await WooCommerce.get(`orders/55131`);
+  const { data } = await WooCommerce.get(`orders/55166`);
 
   let skus = "";
   // for (let index = 0; index < data.line_items.length; index++) {
@@ -138,10 +138,15 @@ const refundReport = asyncHandler(async (req, res, next) => {
 
 const fetchAllOrderFromWoocommerce = asyncHandler(async (req, res, next) => {
   const { from, to } = req.body;
+
+  console.log(
+    new Date(new Date(from).toISOString().substr(0, 10)).toISOString()
+  );
+  console.log(new Date(new Date(to).toISOString().substr(0, 10)).toISOString());
   // return res.json(req.body);
   var zip = new AdmZip();
   const jsonArray = excelToJson({
-    sourceFile: "اكواد اورجين مع اكواد المحاسب.xlsx",
+    sourceFile: "ACC SKU.xlsx",
     header: {
       rows: 1,
     },
@@ -175,9 +180,11 @@ const fetchAllOrderFromWoocommerce = asyncHandler(async (req, res, next) => {
   let page_num = 1;
   while (true) {
     const { data } = await WooCommerce.get(
-      `orders?page=${page_num}&per_page=100&after=${new Date(
-        from
-      ).toISOString()}&before=${new Date(to).toISOString()}`
+      `orders?page=${page_num}&pre_page=5&after=${new Date(
+        new Date(from).toISOString().substr(0, 10)
+      ).toISOString()}&before=${new Date(
+        new Date(to).toISOString().substr(0, 10)
+      ).toISOString()}`
     );
     let createdOrder;
     for (let j = 0; j < data.length; j++) {
@@ -227,47 +234,118 @@ const fetchAllOrderFromWoocommerce = asyncHandler(async (req, res, next) => {
                         { transaction: t }
                       );
                     }
+                    for (let q = 0; q < orderItem.quantity; q++) {
+                      createdOrder = await CancelledOrder.create(
+                        {
+                          woo_order_id: woo_order.id,
+                          orjeen_sku: orderItem.sku,
+                          accountant_sku:
+                            jsonArray.Sheet1[
+                              jsonArray.Sheet1.findIndex(
+                                (s) => s.ORsku == orderItem.sku
+                              )
+                            ] &&
+                            jsonArray.Sheet1[
+                              jsonArray.Sheet1.findIndex(
+                                (s) => s.ORsku == orderItem.sku
+                              )
+                            ].ACCsku,
+                          order_item_name: orderItem.name,
+                          quantity: 1,
+                          order_status: woo_order.status,
+                          shipping_method:
+                            woo_order.shipping_lines[0].method_id,
+                          price: +orderItem.price.toFixed(2),
+                          tax: +((orderItem.price * 15) / 100).toFixed(2),
+                          payment_method: woo_order.payment_method_title,
+                          order_created_date: woo_order.date_created,
+                          order_modified_date: woo_order.date_modified,
+                          item_sku: orderItem.sku,
+                          item_price: orderItem.price,
+                          item_quantity: orderItem.quantity,
+                          total: +(
+                            orderItem.price +
+                            (orderItem.price * 15) / 100
+                          ).toFixed(2),
+                        },
+                        { transaction: t }
+                      );
+                    }
                   }
                 }
-              }
-            }
-            for (k = 0; k < woo_order.line_items.length; k++) {
-              const orderItem = woo_order.line_items[k];
-              for (let q = 0; q < orderItem.quantity; q++) {
-                createdOrder = await CancelledOrder.create(
-                  {
-                    woo_order_id: woo_order.id,
-                    orjeen_sku: orderItem.sku,
-                    accountant_sku:
-                      jsonArray.Sheet1[
-                        jsonArray.Sheet1.findIndex(
-                          (s) => s.ORsku == orderItem.sku
-                        )
-                      ] &&
-                      jsonArray.Sheet1[
-                        jsonArray.Sheet1.findIndex(
-                          (s) => s.ORsku == orderItem.sku
-                        )
-                      ].ACCsku,
-                    order_item_name: orderItem.name,
-                    quantity: 1,
-                    order_status: woo_order.status,
-                    shipping_method: woo_order.shipping_lines[0].method_id,
-                    price: +orderItem.price.toFixed(2),
-                    tax: +((orderItem.price * 15) / 100).toFixed(2),
-                    payment_method: woo_order.payment_method_title,
-                    order_created_date: woo_order.date_created,
-                    order_modified_date: woo_order.date_modified,
-                    item_sku: orderItem.sku,
-                    item_price: orderItem.price,
-                    item_quantity: orderItem.quantity,
-                    total: +(
-                      orderItem.price +
-                      (orderItem.price * 15) / 100
-                    ).toFixed(2),
-                  },
-                  { transaction: t }
-                );
+              } else {
+                for (let q = 0; q < orderItem.quantity; q++) {
+                  createdOrder = await ConfirmedOrder.create(
+                    {
+                      woo_order_id: woo_order.id,
+                      orjeen_sku: orderItem.sku,
+                      accountant_sku:
+                        jsonArray.Sheet1[
+                          jsonArray.Sheet1.findIndex(
+                            (s) => s.ORsku == orderItem.sku
+                          )
+                        ] &&
+                        jsonArray.Sheet1[
+                          jsonArray.Sheet1.findIndex(
+                            (s) => s.ORsku == orderItem.sku
+                          )
+                        ].ACCsku,
+                      order_item_name: orderItem.name,
+                      quantity: 1,
+                      order_status: "processing",
+                      shipping_method: woo_order.shipping_lines[0].method_id,
+                      price: +orderItem.price.toFixed(2),
+                      tax: +((orderItem.price * 15) / 100).toFixed(2),
+                      payment_method: woo_order.payment_method_title,
+                      order_created_date: woo_order.date_created,
+                      order_modified_date: woo_order.date_modified,
+                      item_sku: orderItem.sku,
+                      item_price: orderItem.price,
+                      item_quantity: orderItem.quantity,
+                      total: +(
+                        orderItem.price +
+                        (orderItem.price * 15) / 100
+                      ).toFixed(2),
+                    },
+                    { transaction: t }
+                  );
+                }
+                for (let q = 0; q < orderItem.quantity; q++) {
+                  createdOrder = await CancelledOrder.create(
+                    {
+                      woo_order_id: woo_order.id,
+                      orjeen_sku: orderItem.sku,
+                      accountant_sku:
+                        jsonArray.Sheet1[
+                          jsonArray.Sheet1.findIndex(
+                            (s) => s.ORsku == orderItem.sku
+                          )
+                        ] &&
+                        jsonArray.Sheet1[
+                          jsonArray.Sheet1.findIndex(
+                            (s) => s.ORsku == orderItem.sku
+                          )
+                        ].ACCsku,
+                      order_item_name: orderItem.name,
+                      quantity: 1,
+                      order_status: woo_order.status,
+                      shipping_method: woo_order.shipping_lines[0].method_id,
+                      price: +orderItem.price.toFixed(2),
+                      tax: +((orderItem.price * 15) / 100).toFixed(2),
+                      payment_method: woo_order.payment_method_title,
+                      order_created_date: woo_order.date_created,
+                      order_modified_date: woo_order.date_modified,
+                      item_sku: orderItem.sku,
+                      item_price: orderItem.price,
+                      item_quantity: orderItem.quantity,
+                      total: +(
+                        orderItem.price +
+                        (orderItem.price * 15) / 100
+                      ).toFixed(2),
+                    },
+                    { transaction: t }
+                  );
+                }
               }
             }
           });
