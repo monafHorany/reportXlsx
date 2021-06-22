@@ -4,13 +4,18 @@ const orderController = require("../controller/orders");
 
 router.post(
   "/fetchAllOrderFromWoocommerce",
-  orderController.fetchAllOrderFromWoocommerce
+  orderController.fetchAllSalesOrderFromWoocommerce
 );
-router.get("/download", orderController.downloadFiles);
+router.post(
+  "/fetchAllRefundOrderFromWoocommerce",
+  orderController.fetchAllRefundOrderFromWoocommerce
+);
+router.get("/saleDownload", orderController.downloadSaleFile);
+router.get("/refundDownload", orderController.downloadRefundFile);
 router.post("/statusHandler", orderController.orderStatusHandler);
 router.get("/fetchAllNewOrder", orderController.fetchAllNewOrder);
 router.get("/woo_order", orderController.woo_order);
-router.get("/saleReport", orderController.saleReport);
-router.get("/refundReport", orderController.refundReport);
+// router.get("/saleReport", orderController.saleReport);
+// router.get("/refundReport", orderController.refundReport);
 
 module.exports = router;
