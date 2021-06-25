@@ -3,8 +3,8 @@ const router = express.Router();
 const userController = require("../controller/user");
 const {
   protect,
-  admin,
-  adminANDeditor,
+  accountant,
+  ordermanager
 } = require("../middleware/authMiddleware");
 
 router.post("/login", userController.login);

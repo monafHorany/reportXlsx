@@ -25,24 +25,21 @@ const protect = asyncHandler(async (req, res, next) => {
   }
 });
 
-const admin = asyncHandler(async (req, res, next) => {
-  if (req.user && req.user.role === "super user") {
+const accountant = asyncHandler(async (req, res, next) => {
+  if (req.user && req.user.role === "accountant") {
     next();
   } else {
-    res.status(401).json("Not authorized as an admin, Logging you out");
+    res.status(401).json("Not authorized as an accountant, Logging you out");
   }
 });
-const adminANDeditor = asyncHandler(async (req, res, next) => {
-  if (
-    (req.user && req.user.role === "super user") ||
-    (req.user && req.user.role === "editor")
-  ) {
+const ordermanager = asyncHandler(async (req, res, next) => {
+  if (req.user && req.user.role === "ordermanager") {
     next();
   } else {
-    res.status(401).json("Not authorized as an editor, Logging you out");
+    res.status(401).json("Not authorized as an ordermanager, Logging you out");
   }
 });
 
 exports.protect = protect;
-exports.admin = admin;
-exports.adminANDeditor = adminANDeditor;
+exports.accountant = accountant;
+exports.ordermanager = ordermanager;
