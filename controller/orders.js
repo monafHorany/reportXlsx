@@ -356,7 +356,7 @@ const fetchAllRefundOrderFromWoocommerce = asyncHandler(
         const woo_order = data[j];
         console.log(
           new Date(woo_order.date_modified),
-          new Date(from),
+          new Date(from).toLocaleDateString(),
           new Date(woo_order.date_modified) >= new Date(from)
         );
         if (
