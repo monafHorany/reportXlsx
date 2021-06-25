@@ -10,10 +10,14 @@ const {
 
 router.post(
   "/fetchAllOrderFromWoocommerce",
+  protect,
+  accountant,
   orderController.fetchAllSalesOrderFromWoocommerce
 );
 router.post(
   "/fetchAllRefundOrderFromWoocommerce",
+  protect,
+  accountant,
   orderController.fetchAllRefundOrderFromWoocommerce
 );
 router.get("/saleDownload", orderController.downloadSaleFile);
