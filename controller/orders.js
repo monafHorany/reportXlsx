@@ -179,10 +179,8 @@ const fetchAllSalesOrderFromWoocommerce = asyncHandler(
     while (true) {
       const { data } = await WooCommerce.get(
         `orders?page=${page_num}&per_page=100&after=${new Date(
-          new Date(from).toISOString().substr(0, 10)
-        ).toISOString()}&before=${new Date(
-          new Date(to).toISOString().substr(0, 10)
-        ).toISOString()}`
+          from
+        ).toISOString()}&before=${new Date(to).toISOString()}`
       );
       let createdOrder;
       for (let j = 0; j < data.length; j++) {
