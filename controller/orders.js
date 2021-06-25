@@ -354,6 +354,11 @@ const fetchAllRefundOrderFromWoocommerce = asyncHandler(
       );
       for (let j = 0; j < data.length; j++) {
         const woo_order = data[j];
+        console.log(
+          new Date(woo_order.date_modified),
+          new Date(from),
+          new Date(woo_order.date_modified) >= new Date(from)
+        );
         if (
           (woo_order.status === "returned-to-store" ||
             woo_order.status === "damaged-return" ||
