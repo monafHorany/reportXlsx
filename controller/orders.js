@@ -586,10 +586,10 @@ const fetchAllRefundOrderFromWoocommerce = asyncHandler(
               payment_method: order.payment_method,
               order_created_date: new Date(
                 order.order_created_date
-              ).toLocaleString(),
+              ).toLocaleDateString(),
               order_modified_date: new Date(
                 order.order_modified_date
-              ).toLocaleString(),
+              ).toLocaleDateString(),
             });
           });
         } catch (error) {
