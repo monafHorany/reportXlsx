@@ -359,10 +359,8 @@ const fetchAllRefundOrderFromWoocommerce = asyncHandler(
             woo_order.status === "damaged-return" ||
             woo_order.status === "refunded" ||
             woo_order.status === "cancelled") &&
-          new Date(woo_order.date_modified).toISOString() >=
-            new Date(from).toISOString() &&
-          new Date(woo_order.date_modified).toISOString() <=
-            new Date(to).toISOString()
+          new Date(woo_order.date_modified) >= new Date(from) &&
+          new Date(woo_order.date_modified) <= new Date(to)
         ) {
           try {
             const result = await sequelize.transaction(async (t) => {
