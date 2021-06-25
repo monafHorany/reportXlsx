@@ -16,18 +16,8 @@ router.post(
   "/fetchAllRefundOrderFromWoocommerce",
   orderController.fetchAllRefundOrderFromWoocommerce
 );
-router.get(
-  "/saleDownload",
-  protect,
-  accountant,
-  orderController.downloadSaleFile
-);
-router.get(
-  "/refundDownload",
-  protect,
-  accountant,
-  orderController.downloadRefundFile
-);
+router.get("/saleDownload", orderController.downloadSaleFile);
+router.get("/refundDownload", orderController.downloadRefundFile);
 router.post(
   "/statusHandler",
   protect,
