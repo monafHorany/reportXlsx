@@ -31,7 +31,7 @@ router.get(
 router.post(
   "/statusHandler",
   protect,
-  orderController,
+  ordermanager,
   orderController.orderStatusHandler
 );
 router.get(
