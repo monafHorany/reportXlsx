@@ -657,6 +657,30 @@ const orderStatusHandler = asyncHandler(async (req, res, next) => {
     });
   }
 });
+const changePriceHandler = asyncHandler(async (req, res, next) => {
+  return console.log(req.body);
+  const { ids } = req.body;
+  console.log(ids.split("\n"));
+  // return res.status(201).json("done");
+  const update = {
+    status: "cancelled",
+  };
+  if (ids) {
+    ids.split("\n").map(async (id, index) => {
+      console.log(parseInt(id));
+      if (!isNaN(parseInt(id))) {
+        const { data } = await WooCommerce.put(
+          `orders/${parseInt(id)}`,
+          update
+        );
+      }
+      console.log(index);
+      if (index === ids.split("\n").length - 1) {
+        return res.status(201).json("done");
+      }
+    });
+  }
+});
 
 exports.fetchAllSalesOrderFromWoocommerce = fetchAllSalesOrderFromWoocommerce;
 exports.fetchAllRefundOrderFromWoocommerce = fetchAllRefundOrderFromWoocommerce;
@@ -667,3 +691,4 @@ exports.woo_order = woo_order;
 exports.downloadSaleFile = downloadSaleFile;
 exports.downloadRefundFile = downloadRefundFile;
 exports.orderStatusHandler = orderStatusHandler;
+exports.changePriceHandler = changePriceHandler;

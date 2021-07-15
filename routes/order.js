@@ -28,6 +28,12 @@ router.post(
   ordermanager,
   orderController.orderStatusHandler
 );
+router.post(
+  "/priceHandler",
+  // protect,
+  // ordermanager,
+  orderController.changePriceHandler
+);
 router.get(
   "/fetchAllNewOrder",
   protect,
