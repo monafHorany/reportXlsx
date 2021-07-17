@@ -24,8 +24,8 @@ router.get("/saleDownload", orderController.downloadSaleFile);
 router.get("/refundDownload", orderController.downloadRefundFile);
 router.post(
   "/statusHandler",
-  protect,
-  ordermanager,
+  // protect,
+  // ordermanager,
   orderController.orderStatusHandler
 );
 router.post(
@@ -40,7 +40,11 @@ router.get(
   accountant,
   orderController.fetchAllNewOrder
 );
-router.get("/woo_order", protect, accountant, orderController.woo_order);
+router.get(
+  "/woo_order",
+  //  protect, accountant,
+  orderController.woo_order
+);
 // router.get("/saleReport", orderController.saleReport);
 // router.get("/refundReport", orderController.refundReport);
 

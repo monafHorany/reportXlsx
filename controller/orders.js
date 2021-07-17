@@ -34,7 +34,7 @@ const fetchAllNewOrder = asyncHandler(async (req, res, next) => {
 });
 
 const woo_order = asyncHandler(async (req, res, next) => {
-  const { data } = await WooCommerce.get(`orders/55166`);
+  const { data } = await WooCommerce.get(`orders/60129`);
 
   let skus = "";
   // for (let index = 0; index < data.line_items.length; index++) {
@@ -635,11 +635,12 @@ const downloadRefundFile = asyncHandler(async (req, res, next) => {
 });
 
 const orderStatusHandler = asyncHandler(async (req, res, next) => {
-  const { ids } = req.body;
+  const { ids, status } = req.body;
+  // return console.log(req.body);
   console.log(ids.split("\n"));
   // return res.status(201).json("done");
   const update = {
-    status: "cancelled",
+    status: status,
   };
   if (ids) {
     ids.split("\n").map(async (id, index) => {
