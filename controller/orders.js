@@ -34,7 +34,7 @@ const fetchAllNewOrder = asyncHandler(async (req, res, next) => {
 });
 
 const woo_order = asyncHandler(async (req, res, next) => {
-  const { data } = await WooCommerce.get(`orders/60129`);
+  const { data } = await WooCommerce.get(`orders/60979`);
 
   let skus = "";
   // for (let index = 0; index < data.line_items.length; index++) {
@@ -217,8 +217,7 @@ const fetchAllSalesOrderFromWoocommerce = asyncHandler(
                               order_item_name: orderItem.name,
                               quantity: 1,
                               order_status: "processing",
-                              shipping_method:
-                                woo_order.shipping_lines[0].method_id,
+                              shipping_method: "SMSA_EXPRESS",
                               price: +orderItem.price.toFixed(2),
                               tax: +((orderItem.price * 15) / 100).toFixed(2),
                               payment_method: woo_order.payment_method_title,
@@ -261,7 +260,7 @@ const fetchAllSalesOrderFromWoocommerce = asyncHandler(
                         order_item_name: orderItem.name,
                         quantity: 1,
                         order_status: "processing",
-                        shipping_method: woo_order.shipping_lines[0].method_id,
+                        shipping_method: "SMSA_EXPRESS",
                         price: +orderItem.price.toFixed(2),
                         tax: +((orderItem.price * 15) / 100).toFixed(2),
                         payment_method: woo_order.payment_method_title,
@@ -391,7 +390,7 @@ const fetchAllRefundOrderFromWoocommerce = asyncHandler(
                             quantity: 1,
                             order_status: woo_order.status,
                             shipping_method:
-                              woo_order.shipping_lines[0].method_id,
+                            "SMSA_EXPRESS",
                             price: +orderItem.price.toFixed(2),
                             tax: +((orderItem.price * 15) / 100).toFixed(2),
                             payment_method: woo_order.payment_method_title,
@@ -432,7 +431,7 @@ const fetchAllRefundOrderFromWoocommerce = asyncHandler(
                           : "N/A",
                         quantity: 1,
                         order_status: woo_order.status,
-                        shipping_method: woo_order.shipping_lines[0].method_id,
+                        shipping_method: "SMSA_EXPRESS",
                         price: +orderItem.price.toFixed(2),
                         tax: +((orderItem.price * 15) / 100).toFixed(2),
                         payment_method: woo_order.payment_method_title,
@@ -537,7 +536,7 @@ const fetchAllRefundOrderFromWoocommerce = asyncHandler(
                           : "N/A",
                         quantity: 1,
                         order_status: "refunded",
-                        shipping_method: woo_order.shipping_lines[0].method_id,
+                        shipping_method: "SMSA_EXPRESS",
                         price: +orderItem.price.toFixed(2),
                         tax: +((orderItem.price * 15) / 100).toFixed(2),
                         payment_method: woo_order.payment_method_title,
