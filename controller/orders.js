@@ -185,11 +185,7 @@ const fetchAllSalesOrderFromWoocommerce = asyncHandler(
       let createdOrder;
       for (let j = 0; j < data.length; j++) {
         const woo_order = data[j];
-        if (
-          woo_order.status === "processing" ||
-          woo_order.status === "confirmed" ||
-          woo_order.status === "completed"
-        ) {
+        if (woo_order.status) {
           try {
             const result = await sequelize.transaction(async (t) => {
               if (woo_order.refunds.length === 0) {
