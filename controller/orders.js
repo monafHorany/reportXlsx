@@ -34,7 +34,7 @@ const fetchAllNewOrder = asyncHandler(async (req, res, next) => {
 });
 
 const woo_order = asyncHandler(async (req, res, next) => {
-  const { data } = await WooCommerce.get(`orders/60979`);
+  const { data } = await WooCommerce.get(`orders/62727`);
 
   let skus = "";
   // for (let index = 0; index < data.line_items.length; index++) {
@@ -188,93 +188,133 @@ const fetchAllSalesOrderFromWoocommerce = asyncHandler(
         if (woo_order.status) {
           try {
             const result = await sequelize.transaction(async (t) => {
-              if (woo_order.refunds.length === 0) {
-                for (k = 0; k < woo_order.line_items.length; k++) {
-                  const orderItem = woo_order.line_items[k];
-                  if (orderItem.meta_data[0]) {
-                    if (orderItem.meta_data[0].key) {
-                      if (orderItem.meta_data[0].key != "_bundled_by") {
-                        for (let q = 0; q < orderItem.quantity; q++) {
-                          createdOrder = await ConfirmedOrder.create(
-                            {
-                              woo_order_id: woo_order.id,
-                              orjeen_sku: orderItem.sku,
-                              accountant_sku:
-                                jsonArray.Sheet1[
-                                  jsonArray.Sheet1.findIndex(
-                                    (s) => s.ORsku == orderItem.sku
-                                  )
-                                ] &&
-                                jsonArray.Sheet1[
-                                  jsonArray.Sheet1.findIndex(
-                                    (s) => s.ORsku == orderItem.sku
-                                  )
-                                ].ACCsku,
-                              order_item_name: orderItem.name,
-                              quantity: 1,
-                              order_status: "processing",
-                              shipping_method: "SMSA_EXPRESS",
-                              price: +orderItem.price.toFixed(2),
-                              tax: +((orderItem.price * 15) / 100).toFixed(2),
-                              payment_method: woo_order.payment_method_title,
-                              order_created_date: woo_order.date_created,
-                              order_modified_date: woo_order.date_modified,
-                              item_sku: orderItem.sku,
-                              item_price: orderItem.price,
-                              item_quantity: orderItem.quantity,
-                              total: +(
-                                orderItem.price +
-                                (orderItem.price * 15) / 100
-                              ).toFixed(2),
-                            },
-                            { transaction: t }
-                          );
-                        }
+              // if (woo_order.refunds.length === 0) {
+              for (k = 0; k < woo_order.line_items.length; k++) {
+                const orderItem = woo_order.line_items[k];
+                if (orderItem.meta_data[0]) {
+                  if (orderItem.meta_data[0].key) {
+                    if (orderItem.meta_data[0].key != "_bundled_by") {
+                      for (let q = 0; q < orderItem.quantity; q++) {
+                        createdOrder = await ConfirmedOrder.create(
+                          {
+                            woo_order_id: woo_order.id,
+                            orjeen_sku: orderItem.sku,
+                            accountant_sku:
+                              jsonArray.Sheet1[
+                                jsonArray.Sheet1.findIndex(
+                                  (s) => s.ORsku == orderItem.sku
+                                )
+                              ] &&
+                              jsonArray.Sheet1[
+                                jsonArray.Sheet1.findIndex(
+                                  (s) => s.ORsku == orderItem.sku
+                                )
+                              ].ACCsku,
+                            order_item_name: orderItem.name,
+                            quantity: 1,
+                            order_status: "processing",
+                            shipping_method: "SMSA_EXPRESS",
+                            price: +orderItem.price.toFixed(2),
+                            tax: +((orderItem.price * 15) / 100).toFixed(2),
+                            payment_method: woo_order.payment_method_title,
+                            order_created_date: woo_order.date_created,
+                            order_modified_date: woo_order.date_modified,
+                            item_sku: orderItem.sku,
+                            item_price: orderItem.price,
+                            item_quantity: orderItem.quantity,
+                            total: +(
+                              orderItem.price +
+                              (orderItem.price * 15) / 100
+                            ).toFixed(2),
+                          },
+                          { transaction: t }
+                        );
                       }
                     }
                   }
-                }
-              } else {
-                for (k = 0; k < woo_order.line_items.length; k++) {
-                  const orderItem = woo_order.line_items[k];
-                  for (let q = 0; q < orderItem.quantity; q++) {
-                    createdOrder = await ConfirmedOrder.create(
-                      {
-                        woo_order_id: woo_order.id,
-                        orjeen_sku: orderItem.sku,
-                        accountant_sku:
-                          jsonArray.Sheet1[
-                            jsonArray.Sheet1.findIndex(
-                              (s) => s.ORsku == orderItem.sku
-                            )
-                          ] &&
-                          jsonArray.Sheet1[
-                            jsonArray.Sheet1.findIndex(
-                              (s) => s.ORsku == orderItem.sku
-                            )
-                          ].ACCsku,
-                        order_item_name: orderItem.name,
-                        quantity: 1,
-                        order_status: "processing",
-                        shipping_method: "SMSA_EXPRESS",
-                        price: +orderItem.price.toFixed(2),
-                        tax: +((orderItem.price * 15) / 100).toFixed(2),
-                        payment_method: woo_order.payment_method_title,
-                        order_created_date: woo_order.date_created,
-                        order_modified_date: woo_order.date_modified,
-                        item_sku: orderItem.sku,
-                        item_price: orderItem.price,
-                        item_quantity: orderItem.quantity,
-                        total: +(
-                          orderItem.price +
-                          (orderItem.price * 15) / 100
-                        ).toFixed(2),
-                      },
-                      { transaction: t }
-                    );
+                } else {
+                  for (k = 0; k < woo_order.line_items.length; k++) {
+                    const orderItem = woo_order.line_items[k];
+                    for (let q = 0; q < orderItem.quantity; q++) {
+                      createdOrder = await ConfirmedOrder.create(
+                        {
+                          woo_order_id: woo_order.id,
+                          orjeen_sku: orderItem.sku,
+                          accountant_sku:
+                            jsonArray.Sheet1[
+                              jsonArray.Sheet1.findIndex(
+                                (s) => s.ORsku == orderItem.sku
+                              )
+                            ] &&
+                            jsonArray.Sheet1[
+                              jsonArray.Sheet1.findIndex(
+                                (s) => s.ORsku == orderItem.sku
+                              )
+                            ].ACCsku,
+                          order_item_name: orderItem.name,
+                          quantity: 1,
+                          order_status: "processing",
+                          shipping_method: "SMSA_EXPRESS",
+                          price: +orderItem.price.toFixed(2),
+                          tax: +((orderItem.price * 15) / 100).toFixed(2),
+                          payment_method: woo_order.payment_method_title,
+                          order_created_date: woo_order.date_created,
+                          order_modified_date: woo_order.date_modified,
+                          item_sku: orderItem.sku,
+                          item_price: orderItem.price,
+                          item_quantity: orderItem.quantity,
+                          total: +(
+                            orderItem.price +
+                            (orderItem.price * 15) / 100
+                          ).toFixed(2),
+                        },
+                        { transaction: t }
+                      );
+                    }
                   }
                 }
               }
+              // } else {
+              //   for (k = 0; k < woo_order.line_items.length; k++) {
+              //     const orderItem = woo_order.line_items[k];
+              //     for (let q = 0; q < orderItem.quantity; q++) {
+              //       createdOrder = await ConfirmedOrder.create(
+              //         {
+              //           woo_order_id: woo_order.id,
+              //           orjeen_sku: orderItem.sku,
+              //           accountant_sku:
+              //             jsonArray.Sheet1[
+              //               jsonArray.Sheet1.findIndex(
+              //                 (s) => s.ORsku == orderItem.sku
+              //               )
+              //             ] &&
+              //             jsonArray.Sheet1[
+              //               jsonArray.Sheet1.findIndex(
+              //                 (s) => s.ORsku == orderItem.sku
+              //               )
+              //             ].ACCsku,
+              //           order_item_name: orderItem.name,
+              //           quantity: 1,
+              //           order_status: "processing",
+              //           shipping_method: "SMSA_EXPRESS",
+              //           price: +orderItem.price.toFixed(2),
+              //           tax: +((orderItem.price * 15) / 100).toFixed(2),
+              //           payment_method: woo_order.payment_method_title,
+              //           order_created_date: woo_order.date_created,
+              //           order_modified_date: woo_order.date_modified,
+              //           item_sku: orderItem.sku,
+              //           item_price: orderItem.price,
+              //           item_quantity: orderItem.quantity,
+              //           total: +(
+              //             orderItem.price +
+              //             (orderItem.price * 15) / 100
+              //           ).toFixed(2),
+              //         },
+              //         { transaction: t }
+              //       );
+              //     }
+              //   }
+              // }
             });
           } catch (error) {
             throw new Error(error);
@@ -385,8 +425,7 @@ const fetchAllRefundOrderFromWoocommerce = asyncHandler(
                               : "N/A",
                             quantity: 1,
                             order_status: woo_order.status,
-                            shipping_method:
-                            "SMSA_EXPRESS",
+                            shipping_method: "SMSA_EXPRESS",
                             price: +orderItem.price.toFixed(2),
                             tax: +((orderItem.price * 15) / 100).toFixed(2),
                             payment_method: woo_order.payment_method_title,
