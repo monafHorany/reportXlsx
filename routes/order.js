@@ -45,6 +45,11 @@ router.get(
   //  protect, accountant,
   orderController.woo_order
 );
+router.get(
+  "/printBulkInvoice",
+  //  protect, accountant,
+  orderController.printBulkInvoice
+);
 // router.get("/saleReport", orderController.saleReport);
 // router.get("/refundReport", orderController.refundReport);
 
