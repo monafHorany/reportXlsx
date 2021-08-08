@@ -12,7 +12,7 @@ const ConfirmedOrder = require("../models/confirmed_order");
 
 const CancelledOrder = require("../models/cancelled_order");
 const path = require("path");
-var pdf = require('html-pdf');
+var pdf = require("html-pdf");
 const sequelize = require("../utils/databaseConnection");
 const WooCommerce = new WooCommerceRestApi({
   url: "https://www.orjeen.com/",
@@ -385,7 +385,7 @@ const fetchAllRefundOrderFromWoocommerce = asyncHandler(
     let page_num = 1;
     while (true) {
       const { data } = await WooCommerce.get(
-        `orders?page=${page_num}&per_page=100&status=cancelled,refunded,damaged-return,returned-to-store`
+        `orders?page=${page_num}&per_page=100`
       );
       for (let j = 0; j < data.length; j++) {
         const woo_order = data[j];
@@ -491,7 +491,8 @@ const fetchAllRefundOrderFromWoocommerce = asyncHandler(
           }
         } else if (
           woo_order.status === "processing" ||
-          woo_order.status === "completed"
+          woo_order.status === "completed" ||
+          woo_order.status === "pending"
         ) {
           try {
             const result = await sequelize.transaction(async (t) => {
@@ -765,8 +766,8 @@ const printBulkInvoice = asyncHandler(async (req, res, next) => {
         </html>
         `;
       pdf
-        .create(document, options).toFile(`./${data.id}.pdf`, function(err, res) {
-
+        .create(document, options)
+        .toFile(`./${data.id}.pdf`, function (err, res) {
           const invoiceName = `${data.id}.pdf`;
           const invoicePath = path.resolve(invoiceName);
           fs.readFile(invoicePath, (err, data) => {
@@ -774,7 +775,7 @@ const printBulkInvoice = asyncHandler(async (req, res, next) => {
               return console.log("err" + err);
             }
           });
-        })
+        });
 
       response.push(data);
       // }
