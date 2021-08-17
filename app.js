@@ -11,6 +11,7 @@ const sequelize = require("./utils/databaseConnection");
 const ConfirmedOrder = require("./models/confirmed_order");
 
 const CancelledOrder = require("./models/cancelled_order");
+const ShippedOrder = require("./models/shipped_order");
 
 app.use("/order", require("./routes/order"));
 app.use("/user", require("./routes/user-route"));

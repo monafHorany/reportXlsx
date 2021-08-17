@@ -20,8 +20,15 @@ router.post(
   accountant,
   orderController.fetchAllRefundOrderFromWoocommerce
 );
+router.post(
+  "/fetchAllShippedOrderFromWoocommerce",
+  // protect,
+  // accountant,
+  orderController.fetchAllShippedOrderFromWoocommerce
+);
 router.get("/saleDownload", orderController.downloadSaleFile);
 router.get("/refundDownload", orderController.downloadRefundFile);
+router.get("/shippedDownload", orderController.downloadShippedFile);
 router.post(
   "/statusHandler",
   // protect,
