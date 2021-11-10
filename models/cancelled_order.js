@@ -16,6 +16,10 @@ const CancelledOrder = sequelize.define("cancelled_Order", {
     type: DataTypes.STRING,
     allowNull: false,
   },
+  order_owner_name: {
+    type: DataTypes.STRING,
+    allowNull: true,
+  },
   accountant_sku: {
     type: DataTypes.STRING,
     allowNull: true,
@@ -35,6 +39,10 @@ const CancelledOrder = sequelize.define("cancelled_Order", {
   shipping_method: {
     type: DataTypes.STRING,
     allowNull: false,
+  },
+  shipping_total: {
+    type: DataTypes.DOUBLE,
+    allowNull: true,
   },
   price: {
     type: DataTypes.DOUBLE,

@@ -16,8 +16,8 @@ router.post(
 );
 router.post(
   "/fetchAllRefundOrderFromWoocommerce",
-  protect,
-  accountant,
+  // protect,
+  // accountant,
   orderController.fetchAllRefundOrderFromWoocommerce
 );
 router.post(
